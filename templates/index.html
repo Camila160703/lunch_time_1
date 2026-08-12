@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lunch Time</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="container">
+    <section class="card hero">
+        <h1>🍽️ Lunch Time</h1>
+        <p>Choose your lunch time for today.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="post" class="selection-form">
+            <label for="name">Your name</label>
+            <input id="name" name="name" maxlength="100"
+                   placeholder="Enter your name" required>
+
+            <label>Lunch time</label>
+            <div class="time-grid">
+                {% for time in ["12:00", "12:30", "13:00", "13:30", "14:00"] %}
+                    <label class="time-option">
+                        <input type="radio" name="lunch_time" value="{{ time }}" required>
+                        <span>{{ time }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+
+            <button type="submit">Save lunch time</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <div class="section-header">
+            <div>
+                <h2>Today's lunch plan</h2>
+                <p>{{ today.strftime("%A, %B %d, %Y") }}</p>
+            </div>
+            <strong>{{ selections|length }} people</strong>
+        </div>
+
+        {% if selections %}
+            <div class="schedule">
+                {% for time in ["12:00", "12:30", "13:00", "13:30", "14:00"] %}
+                    <div class="slot">
+                        <div class="slot-time">
+                            <strong>{{ time }}</strong>
+                            <span>{{ counts.get(time, 0) }} people</span>
+                        </div>
+                        <div class="names">
+                            {% for selection in selections if selection.lunch_time == time %}
+                                <span class="person">{{ selection.name }}</span>
+                            {% endfor %}
+                            {% if counts.get(time, 0) == 0 %}
+                                <span class="empty">No one yet</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">No lunch times selected yet.</div>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2>Change or clear your selection</h2>
+        <p>To change it, simply submit your name again with a new time.</p>
+        <form method="post" action="{{ url_for('clear_selection') }}" class="clear-form">
+            <input name="name" maxlength="100" placeholder="Your name" required>
+            <button type="submit" class="secondary"
+                    onclick="return confirm('Clear your lunch selection?')">
+                Clear
+            </button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
